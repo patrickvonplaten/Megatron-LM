@@ -86,7 +86,7 @@ class _CopyToModelParallelRegion(torch.autograd.Function):
     @staticmethod
     def symbolic(graph, input_):
         return input_
-    
+
     @staticmethod
     def forward(ctx, input_):
         return input_
@@ -102,9 +102,10 @@ class _ReduceFromModelParallelRegion(torch.autograd.Function):
     @staticmethod
     def symbolic(graph, input_):
         return _reduce(input_)
-    
+
     @staticmethod
     def forward(ctx, input_):
+        ctx.mark_dirty(input_)
         return _reduce(input_)
 
     @staticmethod
@@ -134,7 +135,7 @@ class _GatherFromModelParallelRegion(torch.autograd.Function):
     @staticmethod
     def symbolic(graph, input_):
         return _gather(input_)
-    
+
     @staticmethod
     def forward(ctx, input_):
         return _gather(input_)
