@@ -17,8 +17,8 @@ from functools import reduce
 import operator
 import torch
 
-from megatron import get_args
-from megatron import mpu
+from . import get_args
+from . import mpu
 
 
 def _communicate(tensor_send_next, tensor_send_prev, recv_prev, recv_next,
@@ -47,7 +47,8 @@ def _communicate(tensor_send_next, tensor_send_prev, recv_prev, recv_next,
     Returns:
         (tensor_recv_prev, tensor_recv_next)
     """
-    args = get_args()
+    # args = get_args()
+    scatter_gather_tensors_in_pipeline = True
 
     # Create placeholder tensors for receive in forward and backward directions
     # if needed.
@@ -61,7 +62,7 @@ def _communicate(tensor_send_next, tensor_send_prev, recv_prev, recv_next,
         tensor_shape = (args.seq_length, args.micro_batch_size, args.hidden_size)
 
     override_scatter_gather_tensors_in_pipeline = False
-    if args.scatter_gather_tensors_in_pipeline:
+    if scatter_gather_tensors_in_pipeline:
         tensor_chunk_shape = reduce(operator.mul, tensor_shape, 1)
         if tensor_chunk_shape % mpu.get_tensor_model_parallel_world_size() == 0:
             tensor_chunk_shape = tensor_chunk_shape // \
@@ -71,9 +72,9 @@ def _communicate(tensor_send_next, tensor_send_prev, recv_prev, recv_next,
             override_scatter_gather_tensors_in_pipeline = True
     else:
         tensor_chunk_shape = tensor_shape
-    dtype = args.params_dtype
-    if args.fp32_residual_connection:
-        dtype = torch.float
+    dtype = torch.half
+    # if args.fp32_residual_connection:
+    #     dtype = torch.float
 
     requires_grad = True
     if dtype_ is not None:
@@ -93,7 +94,7 @@ def _communicate(tensor_send_next, tensor_send_prev, recv_prev, recv_next,
 
     # Split tensor into smaller chunks if using scatter-gather optimization.
     if not override_scatter_gather_tensors_in_pipeline and \
-            args.scatter_gather_tensors_in_pipeline:
+            scatter_gather_tensors_in_pipeline:
         if tensor_send_next is not None:
             tensor_send_next = mpu.split_tensor_into_1d_equal_chunks(tensor_send_next)
 
@@ -138,7 +139,7 @@ def _communicate(tensor_send_next, tensor_send_prev, recv_prev, recv_next,
 
     # If using scatter-gather optimization, gather smaller chunks.
     if not override_scatter_gather_tensors_in_pipeline and \
-            args.scatter_gather_tensors_in_pipeline:
+            scatter_gather_tensors_in_pipeline:
         if recv_prev:
             tensor_recv_prev = mpu.gather_split_1d_tensor(
                 tensor_recv_prev).view(tensor_shape).requires_grad_()

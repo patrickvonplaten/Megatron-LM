@@ -24,7 +24,7 @@ from torch import _C
 from torch.cuda import _lazy_call, device as device_ctx_manager
 from torch.utils.checkpoint import detach_variable
 
-from megatron.memory import allocate_mem_buff
+# from megatron.memory import allocate_mem_buff
 
 from .initialize import get_data_parallel_rank
 from .initialize import get_tensor_model_parallel_group
@@ -83,7 +83,7 @@ def split_tensor_into_1d_equal_chunks(tensor, new_buffer=False):
     else:
         data = tensor.view(-1)[start_index:end_index]
     return data
-    
+
 
 def gather_split_1d_tensor(tensor):
     """Opposite of above function, gather values from model parallel ranks."""
