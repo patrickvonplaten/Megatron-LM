@@ -62,7 +62,7 @@ def initialize_megatron(extra_args_provider=None, args_defaults={},
         # Random seeds for reproducibility.
         if args.rank == 0:
             print('> setting random seeds to {} ...'.format(args.seed))
-        _set_random_seed(args.seed)
+#        _set_random_seed(args.seed)
 
     # Set pytorch JIT layer fusion options.
     _set_jit_fusion_options()
